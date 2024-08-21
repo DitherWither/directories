@@ -38,7 +38,7 @@ Further documentation can be found at <https://hexdocs.pm/directories>.
 - It depends on `envoy` to get environment variables
 
 ## TODO
-- [ ] Publish to hexpm
+- [x] Publish to hexpm
 - [ ] Remove dependency on `gleam_erlang` to make it work in the js runtime
 
 ## Development
