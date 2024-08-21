@@ -1,6 +1,6 @@
 # directories
 
-A lightweight package to get standard locations of directories for temporary files, config, cache, etc.
+A lightweight gleam package to get standard locations of directories for temporary files, config, cache, etc.
 
 
 [![Package Version](https://img.shields.io/hexpm/v/directories)](https://hex.pm/packages/directories)
