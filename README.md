@@ -33,13 +33,13 @@ Further documentation can be found at <https://hexdocs.pm/directories>.
 
 ## Dependencies
 - It depends on `gleam_stdlib`
-- It depends on `gleam_erlang` to find out what is the host operating system.
+- It depends on `platform` to find out what is the host operating system.
 - It depends on `simplifile` to check if a folder exists and is a valid file
 - It depends on `envoy` to get environment variables
 
 ## TODO
 - [x] Publish to hexpm
-- [ ] Remove dependency on `gleam_erlang` to make it work in the js runtime
+- [x] Remove dependency on `gleam_erlang` to make it work in the js runtime
 
 ## Development
 

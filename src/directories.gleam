@@ -1,9 +1,9 @@
 import envoy
-import gleam/erlang/os
 import gleam/io
 import gleam/list
 import gleam/result
 import gleam/string
+import platform
 import simplifile
 
 /// Return the first environment variable from the list
@@ -52,11 +52,15 @@ pub fn tmp_dir() -> Result(String, Nil) {
   case check_dir_from_env(["TMPDIR", "TEMP", "TMP"]) {
     Ok(path) -> Ok(path)
     Error(Nil) -> {
-      case os.family() {
-        os.WindowsNt -> check_dirs(["C:\\TEMP", "C:\\TMP", "\\TEMP", "\\TMP"])
-        os.Darwin | os.Linux | os.FreeBsd ->
-          check_dirs(["/tmp", "/var/tmp", "/usr/tmp"])
-        os.Other(os) -> other_os_message(os)
+      case platform.os() {
+        platform.Win32 -> check_dirs(["C:\\TEMP", "C:\\TMP", "\\TEMP", "\\TMP"])
+        platform.Darwin
+        | platform.Linux
+        | platform.FreeBsd
+        | platform.OpenBsd
+        | platform.SunOs
+        | platform.Aix -> check_dirs(["/tmp", "/var/tmp", "/usr/tmp"])
+        platform.OtherOs(os) -> other_os_message(os)
       }
     }
   }
@@ -68,10 +72,15 @@ pub fn tmp_dir() -> Result(String, Nil) {
 /// 
 /// On MacOS, Linux, and FreeBSD, it'll return the value of `$HOME` if it exists
 pub fn home_dir() -> Result(String, Nil) {
-  case os.family() {
-    os.WindowsNt -> check_dir_from_env(["UserProfile", "Profile"])
-    os.Darwin | os.Linux | os.FreeBsd -> check_dir_from_env(["HOME"])
-    os.Other(os) -> other_os_message(os)
+  case platform.os() {
+    platform.Win32 -> check_dir_from_env(["UserProfile", "Profile"])
+    platform.Darwin
+    | platform.Linux
+    | platform.FreeBsd
+    | platform.OpenBsd
+    | platform.SunOs
+    | platform.Aix -> check_dir_from_env(["HOME"])
+    platform.OtherOs(os) -> other_os_message(os)
   }
 }
 
@@ -83,12 +92,16 @@ pub fn home_dir() -> Result(String, Nil) {
 /// 
 /// On Linux and FreeBSD, it'll check `$XDG_CACHE_HOME` and `$HOME/.cache`, returning the first one that is a valid directory
 pub fn cache_dir() -> Result(String, Nil) {
-  case os.family() {
-    os.WindowsNt -> check_dir_from_env(["APPDATA"])
-    os.Darwin -> check_dirs([get_env("HOME") <> "/Library/Caches"])
-    os.Linux | os.FreeBsd ->
+  case platform.os() {
+    platform.Win32 -> check_dir_from_env(["APPDATA"])
+    platform.Darwin -> check_dirs([get_env("HOME") <> "/Library/Caches"])
+    platform.Linux
+    | platform.FreeBsd
+    | platform.OpenBsd
+    | platform.SunOs
+    | platform.Aix ->
       check_dirs([get_env("XDG_CACHE_HOME"), home_dir_path("/.cache")])
-    os.Other(os) -> other_os_message(os)
+    platform.OtherOs(os) -> other_os_message(os)
   }
 }
 
@@ -100,12 +113,17 @@ pub fn cache_dir() -> Result(String, Nil) {
 /// 
 /// On Linux and FreeBSD, it'll check `$XDG_CONFIG_HOME` and `$HOME/.config`, returning the first one that is a valid directory
 pub fn config_dir() -> Result(String, Nil) {
-  case os.family() {
-    os.WindowsNt -> check_dir_from_env(["APPDATA"])
-    os.Darwin -> check_dirs([get_env("HOME") <> "/Library/Application Support"])
-    os.Linux | os.FreeBsd ->
+  case platform.os() {
+    platform.Win32 -> check_dir_from_env(["APPDATA"])
+    platform.Darwin ->
+      check_dirs([get_env("HOME") <> "/Library/Application Support"])
+    platform.Linux
+    | platform.FreeBsd
+    | platform.OpenBsd
+    | platform.SunOs
+    | platform.Aix ->
       check_dirs([get_env("XDG_CONFIG_HOME"), home_dir_path("/.config")])
-    os.Other(os) -> other_os_message(os)
+    platform.OtherOs(os) -> other_os_message(os)
   }
 }
 
@@ -117,8 +135,8 @@ pub fn config_dir() -> Result(String, Nil) {
 /// 
 /// On Linux and FreeBSD, it'll check `$XDG_CONFIG_HOME` and `$HOME/.config`, returning the first one that is a valid directory
 pub fn config_local_dir() -> Result(String, Nil) {
-  case os.family() {
-    os.WindowsNt -> check_dir_from_env(["LOCALAPPDATA"])
+  case platform.os() {
+    platform.Win32 -> check_dir_from_env(["LOCALAPPDATA"])
     _ -> config_dir()
   }
 }
@@ -131,8 +149,8 @@ pub fn config_local_dir() -> Result(String, Nil) {
 /// 
 /// On Linux and FreeBSD, it'll check `$XDG_DATA_HOME``and $HOME/.local/share, returning the first one that is a valid directory
 pub fn data_dir() -> Result(String, Nil) {
-  case os.family() {
-    os.Linux | os.FreeBsd ->
+  case platform.os() {
+    platform.Linux | platform.FreeBsd ->
       check_dirs([get_env("XDG_DATA_HOME"), home_dir_path("/.local/share")])
     _ -> config_dir()
   }
@@ -146,8 +164,8 @@ pub fn data_dir() -> Result(String, Nil) {
 /// 
 /// On Linux and FreeBSD, it'll check DG_DATA_HOME ```$H`````ocal/share, r```g``` the first one that is a valid directory
 pub fn data_local_dir() -> Result(String, Nil) {
-  case os.family() {
-    os.WindowsNt -> check_dir_from_env(["LOCALAPPDATA"])
+  case platform.os() {
+    platform.Win32 -> check_dir_from_env(["LOCALAPPDATA"])
     _ -> data_dir()
   }
 }
@@ -158,15 +176,19 @@ pub fn data_local_dir() -> Result(String, Nil) {
 /// 
 /// On all other platforms, it'll always return `Error(Nil)`
 pub fn executable_dir() -> Result(String, Nil) {
-  case os.family() {
-    os.WindowsNt | os.Darwin -> Error(Nil)
-    os.Linux | os.FreeBsd ->
+  case platform.os() {
+    platform.Win32 | platform.Darwin -> Error(Nil)
+    platform.Linux
+    | platform.FreeBsd
+    | platform.OpenBsd
+    | platform.SunOs
+    | platform.Aix ->
       check_dirs([
         get_env("XDG_BIN_HOME"),
         home_dir_path("/.local/bin"),
         get_env("XDG_DATA_HOME") <> "../bin",
       ])
-    os.Other(os) -> other_os_message(os)
+    platform.OtherOs(os) -> other_os_message(os)
   }
 }
 
@@ -178,8 +200,8 @@ pub fn executable_dir() -> Result(String, Nil) {
 /// 
 /// On Linux and FreeBSD, it'll check $XDG_CONFIG_HOME and $HOME/.config, returning the first one that is a valid directory
 pub fn preference_dir() -> Result(String, Nil) {
-  case os.family() {
-    os.Darwin -> check_dirs([home_dir_path("/Library/Preferences")])
+  case platform.os() {
+    platform.Darwin -> check_dirs([home_dir_path("/Library/Preferences")])
     _ -> config_dir()
   }
 }
@@ -190,10 +212,14 @@ pub fn preference_dir() -> Result(String, Nil) {
 /// 
 /// On all other platforms, it'll always return `Error(Nil)`
 pub fn runtime_dir() -> Result(String, Nil) {
-  case os.family() {
-    os.WindowsNt | os.Darwin -> Error(Nil)
-    os.Linux | os.FreeBsd -> check_dir_from_env(["XDG_RUNTIME_DIR"])
-    os.Other(os) -> other_os_message(os)
+  case platform.os() {
+    platform.Win32 | platform.Darwin -> Error(Nil)
+    platform.Linux
+    | platform.FreeBsd
+    | platform.OpenBsd
+    | platform.SunOs
+    | platform.Aix -> check_dir_from_env(["XDG_RUNTIME_DIR"])
+    platform.OtherOs(os) -> other_os_message(os)
   }
 }
 
@@ -206,17 +232,21 @@ pub fn runtime_dir() -> Result(String, Nil) {
 /// 
 /// On all other platforms, it'll always return `Error(Nil)`
 pub fn state_dir() -> Result(String, Nil) {
-  case os.family() {
-    os.WindowsNt | os.Darwin -> Error(Nil)
-    os.Linux | os.FreeBsd ->
+  case platform.os() {
+    platform.Win32 | platform.Darwin -> Error(Nil)
+    platform.Linux
+    | platform.FreeBsd
+    | platform.OpenBsd
+    | platform.SunOs
+    | platform.Aix ->
       check_dirs([get_env("XDG_STATE_HOME"), home_dir_path("/.local/state")])
-    os.Other(os) -> other_os_message(os)
+    platform.OtherOs(os) -> other_os_message(os)
   }
 }
 
 pub fn main() {
   io.print("Current Platform: ")
-  let _ = io.debug(os.family())
+  let _ = io.debug(platform.os())
   io.println("===")
   io.print("Temp Directory: ")
   let _ = io.debug(tmp_dir())
