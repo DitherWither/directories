@@ -9,7 +9,7 @@ import simplifile
 /// Return the first environment variable from the list
 /// that is set and is a valid directory
 fn check_dir_from_env(vars: List(String)) -> Result(String, Nil) {
-  vars |> list.filter_map(envoy.get(_)) |> check_dirs
+  vars |> list.filter_map(envoy.get) |> check_dirs
 }
 
 /// Return the first directory from the list that exists, or Nil
@@ -242,32 +242,4 @@ pub fn state_dir() -> Result(String, Nil) {
       check_dirs([get_env("XDG_STATE_HOME"), home_dir_path("/.local/state")])
     platform.OtherOs(os) -> other_os_message(os)
   }
-}
-
-pub fn main() {
-  io.print("Current Platform: ")
-  let _ = io.debug(platform.os())
-  io.println("===")
-  io.print("Temp Directory: ")
-  let _ = io.debug(tmp_dir())
-  io.print("Home Directory: ")
-  let _ = io.debug(home_dir())
-  io.print("Cache Directory: ")
-  let _ = io.debug(cache_dir())
-  io.print("Config Directory: ")
-  let _ = io.debug(config_dir())
-  io.print("Config Directory (Local): ")
-  let _ = io.debug(config_local_dir())
-  io.print("Data Directory: ")
-  let _ = io.debug(data_dir())
-  io.print("Data Directory (Local): ")
-  let _ = io.debug(data_local_dir())
-  io.print("Executables Directory: ")
-  let _ = io.debug(executable_dir())
-  io.print("Preferences Directory: ")
-  let _ = io.debug(preference_dir())
-  io.print("Runtime Directory: ")
-  let _ = io.debug(runtime_dir())
-  io.print("State Directory: ")
-  let _ = io.debug(state_dir())
 }
